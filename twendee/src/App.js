@@ -1,73 +1,44 @@
-import React, {Component} from 'react'
+import React, { useEffect, useState } from "react";
+import Users from './components/users';
+import Pagination from './components/Pagination';
+import axios from 'axios';
+import { USER_PER_PAGE } from "./utils/constants";
+import './App.css';
 
-class App extends Component{
+function App() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      const res = await axios.get('https://randomuser.me/api/?page=1&results=100');
+      setLoading(false);
+      setUsers(res.data.results);
 
-constructor(props){
-  super(props)
-  this.state = {
-    items:[],
-    loading:false
+      setTotalPages(Math.ceil(res.data.results.length / USER_PER_PAGE));
+    };
+    fetchUsers();
+  }, []);
+
+  const handleClick = num => {
+    setPage(num);
   }
+
+  return (
+    <div>
+      <h1>Bảng quản lý nhân sự</h1>
+      <p>Page {page}</p>
+      { loading ? <p>Loading...</p> : <>
+        <div className="grid-user">
+            <Users users={users} page={page} />
+        </div>
+        <Pagination totalPages={totalPages} handleClick={handleClick} />
+      </> }
+    </div>
+  );
 }
 
-componentDidMount(){
-
-fetch("https://randomuser.me/api/?page=3&results=10")
-.then((Response) => Response.json())
-.then((Response) => {
-  this.setState({
-    items:Response.results,
-    loading:true
-  })
-})
-
-}
-
-  render(){
-    var {items,loading} = this.state
-
-    if(!loading){
-      return (
-        <div>Loading ...</div>
-      )
-    }
-
-    else{
-    return (
-      <div className="container">
-        <table class="table table-hover">
-  <thead>
-    <tr>
-      <th scope="col">Full Name</th>
-      <th scope="col">Gender</th>
-      <th scope="col">Username</th>
-      <th scope="col">Thumbnail</th>
-    </tr>
-  </thead>
-  <tbody>
-    
-    {items.map ((item) => (
-      <tr>
-        <td> { item.name.title + item.name.first + item.name.last} </td>
-        <td> { item.gender } </td>
-        <td> { item.login.username } </td>
-        <td><img src={ item.picture.thumbnail } alt=""></img> </td>
-
-
-        
-      </tr>
-    ))}
-
-    
-  </tbody>
-</table>
-      </div>
-
-
-      
-    )
-  }
-}
-}
-
-export default App
+export default App;
